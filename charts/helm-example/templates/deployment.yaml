@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "helm-example.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Value1.replicaCount }}
   selector:
     matchLabels:
       {{- include "helm-example.selectorLabels" . | nindent 6 }}
@@ -14,18 +14,18 @@ spec:
       labels:
         {{- include "helm-example.selectorLabels" . | nindent 8 }}
     spec:
-    {{- with .Values.imagePullSecrets }}
+    {{- with .Value1.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       serviceAccountName: {{ include "helm-example.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml .Value1.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.version }}"
+            {{- toYaml .Value1.securityContext | nindent 12 }}
+          image: "{{ .Value1.image.repository }}:{{ .Values.image.version }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -40,16 +40,74 @@ spec:
               path: /
               port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Value1.resources | nindent 12 }}
+      {{- with .Value1.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Value1.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Value1.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    
+    ---
+    apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm-example.fullname" . }}
+  labels:
+    {{- include "helm-example.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Value2.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "helm-example.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "helm-example.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Value2.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "helm-example.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Value2.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Value2.securityContext | nindent 12 }}
+          image: "{{ .Value2.image.repository }}:{{ .Values.image.version }}"
+          imagePullPolicy: {{ .Value2.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Value2.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+    {{- with .Value2.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with .Value2.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+
